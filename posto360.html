@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Calculadora de Combustível (Simples)</title>
+    <style>
+        :root {
+            font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #1f2937;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 32px
+        }
+
+        .card {
+            width: 980px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(30, 41, 59, 0.08);
+            padding: 24px
+        }
+
+        .header {
+            margin-bottom: 18px;
+        }
+
+        .logo-area {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .logo-area img {
+            width: 180px;
+            /* tamanho da logo */
+            height: auto;
+            object-fit: contain;
+        }
+
+        .slogan {
+            width: 290px;
+            /* mesma largura da logo */
+            font-size: 16px;
+            font-weight: 500;
+            color: #1f2937;
+            line-height: 1.2;
+        }
+
+        .slogan span {
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+
+        h1 {
+            font-size: 18px;
+            margin: 0
+        }
+
+        form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 180px
+        }
+
+        label {
+            font-size: 13px;
+            color: #374151
+        }
+
+        select,
+        input[type=number] {
+            padding: 10px;
+            border: 1px solid #e6e9ef;
+            border-radius: 8px;
+            font-size: 14px
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        button {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 0;
+            background: #111827;
+            color: #fff;
+            cursor: pointer
+        }
+
+        button.secondary {
+            background: #e6e9ef;
+            color: #111827
+        }
+
+        .table-wrap {
+            overflow: auto;
+            border-radius: 8px;
+            border: 1px solid #e6e9ef
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            min-width: 700px
+        }
+
+        thead th {
+            background: #f8fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #eef2f7
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9
+        }
+
+        /* Coluna fixa (sticky) */
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            border-right: 1px solid #eef2f7;
+            z-index: 2
+        }
+
+        thead th:first-child {
+            z-index: 3;
+            background: #f8fafc
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 12px
+        }
+
+        .note {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 8px
+        }
+
+        @media (max-width:720px) {
+            .card {
+                width: 100%;
+                padding: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <header class="header">
+            <div class="logo-area">
+                <img src="postoimagem.jpeg" alt="Logo da empresa">
+                <div class="slogan">
+                    Capital Inteligente,
+                    <span>Posto Eficiente</span>
+                </div>
+            </div>
+        </header>
+
+        <form id="calcForm" onsubmit="return false;">
+            <div class="field">
+                <label for="fuelSelect">Combustível</label>
+                <select id="fuelSelect"></select>
+            </div>
+
+            <div class="field">
+                <label for="supplierSelect">Fornecedor</label>
+                <select id="supplierSelect"></select>
+            </div>
+
+            <div class="field">
+                <label for="valueInput">Valor (R$)</label>
+                <input id="valueInput" type="number" step="0.01" placeholder="Ex: 5.79" />
+            </div>
+
+            <div class="actions" style="align-self:flex-end;">
+                <button id="calculateBtn">Calcular</button>
+                <button id="resetBtn" class="secondary" type="button">Reset</button>
+            </div>
+        </form>
+
+        <div id="resultArea" style="margin-top:16px;">
+            <!--<div class="note">A tabela gera 15 linhas (dias 1 ao 15). A primeira coluna "Dias" é fixa. A função que
+                calcula o resultado por dia está em <code>calculateForDay</code> no script — edite conforme sua regra.
+            </div>-->
+            <div class="table-wrap" id="tableWrap" style="margin-top:8px;display:none;">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Dias</th>
+                            <th>Resultado</th>
+                            <th>Combustível</th>
+                            <th>Fornecedor</th>
+                            <th>Valor Informado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JSON de fallback caso o fetch falhe -->
+    <script id="defaultOptions" type="application/json">
+    {"fuels":["Gasolina","Diesel","Álcool","GNV"],"suppliers":["Petrobras","Ipiranga","Shell","BR"]}
+  </script>
+
+    <script>
+        // Carrega opções a partir de options.json (arquivo editável) ou usa o fallback embutido
+        async function loadOptions() {
+            let json = null;
+            try {
+                const resp = await fetch('options.json');
+                if (resp.ok) {
+                    json = await resp.json();
+                } else {
+                    throw new Error('fetch failed');
+                }
+            } catch (e) {
+                json = JSON.parse(document.getElementById('defaultOptions').textContent);
+                console.warn('Usando opções padrão embutidas. Para editar, crie options.json na mesma pasta.');
+            }
+            return json;
+        }
+
+        function populateSelects(opts) {
+            const fuelSelect = document.getElementById('fuelSelect');
+            const supplierSelect = document.getElementById('supplierSelect');
+            fuelSelect.innerHTML = '';
+            supplierSelect.innerHTML = '';
+            opts.fuels.forEach(f => {
+                const o = document.createElement('option'); o.value = f; o.textContent = f; fuelSelect.appendChild(o);
+            });
+            opts.suppliers.forEach(s => {
+                const o = document.createElement('option'); o.value = s; o.textContent = s; supplierSelect.appendChild(o);
+            });
+        }
+
+        // Função que calcula o resultado para um dia específico.
+        // Aqui deixei um exemplo simples (multiplica o valor pelo dia/100) — substitua pela sua regra quando quiser.
+        function calculateForDay(day, value, fuel, supplier) {
+            // Exemplo demo: apenas para demonstrar algo na tabela
+            if (!value || Number.isNaN(Number(value))) return '';
+            const v = Number(value);
+            // TODO: substitua por sua lógica real
+            const resultado = (v * (day / 100));
+            return resultado.toFixed(2);
+        }
+
+        function buildTable(value, fuel, supplier) {
+            const tbody = document.querySelector('#resultTable tbody');
+            tbody.innerHTML = '';
+            for (let day = 1; day <= 15; day++) {
+                const tr = document.createElement('tr');
+                const tdDay = document.createElement('td'); tdDay.textContent = day;
+                const tdRes = document.createElement('td'); tdRes.textContent = calculateForDay(day, value, fuel, supplier);
+                const tdFuel = document.createElement('td'); tdFuel.textContent = fuel;
+                const tdSup = document.createElement('td'); tdSup.textContent = supplier;
+                const tdVal = document.createElement('td'); tdVal.textContent = value ? Number(value).toFixed(2) : '';
+                tr.appendChild(tdDay);
+                tr.appendChild(tdRes);
+                tr.appendChild(tdFuel);
+                tr.appendChild(tdSup);
+                tr.appendChild(tdVal);
+                tbody.appendChild(tr);
+            }
+            document.getElementById('tableWrap').style.display = '';
+        }
+
+        // Inicialização
+        (async function () {
+            const opts = await loadOptions();
+            populateSelects(opts);
+
+            document.getElementById('calculateBtn').addEventListener('click', () => {
+                const fuel = document.getElementById('fuelSelect').value;
+                const supplier = document.getElementById('supplierSelect').value;
+                const value = document.getElementById('valueInput').value;
+                buildTable(value, fuel, supplier);
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('valueInput').value = '';
+                document.getElementById('tableWrap').style.display = 'none';
+            });
+        })();
+    </script>
+</body>
+
+</html>

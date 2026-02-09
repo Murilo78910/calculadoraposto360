@@ -1,0 +1,4 @@
+{
+  "fuels": ["Gasolina", "Diesel", "Álcool", "GNV"],
+  "suppliers": ["Petrobras", "Ipiranga", "Shell", "BR"]
+}
